@@ -9,8 +9,9 @@ class OrderSeeder extends Seeder
 {
     public function run(): void
     {
-        Order::create([
-            'order_id' => 'ORD001',
+        Order::updateOrCreate(
+            ['order_id' => 'ORD001'],
+            [
             'order_date' => '2026-09-20',
             'payment_method' => 'Card',
             'status' => 'Delivered',
@@ -28,10 +29,12 @@ class OrderSeeder extends Seeder
             'discount' => 2000,
             'delivery_charges' => 0,
             'total_amount' => 53000,
-        ]);
+            ]
+        );
 
-        Order::create([
-            'order_id' => 'ORD002',
+        Order::updateOrCreate(
+            ['order_id' => 'ORD002'],
+            [
             'order_date' => '2026-09-19',
             'payment_method' => 'Cash',
             'status' => 'Pending',
@@ -49,6 +52,7 @@ class OrderSeeder extends Seeder
             'discount' => 100,
             'delivery_charges' => 50,
             'total_amount' => 2350,
-        ]);
+            ]
+        );
     }
 }
