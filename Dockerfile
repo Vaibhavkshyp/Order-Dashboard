@@ -40,7 +40,7 @@ RUN composer install \
 # ==========================================
 # Stage 3: Laravel production application
 # ==========================================
-FROM php:8.3-cli
+FROM php:8.4-cli
 
 WORKDIR /app
 
@@ -59,11 +59,11 @@ COPY --from=frontend /app/public/build ./public/build
 # Copy Laravel application
 COPY . .
 
-# Create SQLite database if it does not exist
+# Create SQLite database
 RUN mkdir -p database \
     && touch database/database.sqlite
 
-# Create required Laravel directories
+# Create Laravel directories
 RUN mkdir -p \
     storage/framework/cache \
     storage/framework/sessions \
@@ -76,8 +76,6 @@ RUN chmod -R 775 storage bootstrap/cache
 # Generate Laravel package discovery files
 RUN php artisan package:discover --ansi
 
-# Expose Render's default port
 EXPOSE 10000
 
-# Start Laravel server
 CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
