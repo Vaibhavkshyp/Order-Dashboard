@@ -1,50 +1,83 @@
-
-# Stage 1: Build React assets
+# ==========================================
+# Stage 1: Build React frontend assets
+# ==========================================
 FROM node:22-alpine AS frontend
 
 WORKDIR /app
 
+# Copy package files first for better caching
 COPY package*.json ./
+
+# Install frontend dependencies
 RUN npm ci
 
+# Copy complete project
 COPY . .
+
+# Build React/Vite assets
 RUN npm run build
 
 
-# Stage 2: Install PHP dependencies
+# ==========================================
+# Stage 2: Install Laravel dependencies
+# ==========================================
 FROM composer:2 AS dependencies
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
+# Copy complete Laravel project
+COPY . .
 
+# Install PHP dependencies without running scripts
 RUN composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
-    --optimize-autoloader
+    --optimize-autoloader \
+    --no-scripts
 
 
-# Stage 3: Laravel application
+# ==========================================
+# Stage 3: Laravel production application
+# ==========================================
 FROM php:8.3-cli
 
 WORKDIR /app
 
+# Install required PHP extensions
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     && docker-php-ext-install pdo_sqlite \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy Composer dependencies
 COPY --from=dependencies /app/vendor ./vendor
+
+# Copy built frontend assets
 COPY --from=frontend /app/public/build ./public/build
 
+# Copy Laravel application
 COPY . .
 
-RUN mkdir -p database storage/framework/cache \
+# Create SQLite database if it does not exist
+RUN mkdir -p database \
+    && touch database/database.sqlite
+
+# Create required Laravel directories
+RUN mkdir -p \
+    storage/framework/cache \
     storage/framework/sessions \
     storage/framework/views \
-    && chmod -R 775 storage bootstrap/cache
+    bootstrap/cache
 
+# Set permissions
+RUN chmod -R 775 storage bootstrap/cache
+
+# Generate Laravel package discovery files
+RUN php artisan package:discover --ansi
+
+# Expose Render's default port
 EXPOSE 10000
 
+# Start Laravel server
 CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
