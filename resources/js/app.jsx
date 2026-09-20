@@ -40,6 +40,10 @@ function App() {
 
         setFilteredOrders(filteredOrders);
     }  
+
+       if(loading) return <p className="mt-5 text-center">Loading Orders...</p>;
+       
+       if(error) return <p className="text-center mt-5">Error: {error}</p>;
     return (
         <div className="min-h-screen">
             <Header />
@@ -125,13 +129,6 @@ function App() {
                         </div>
                     </div>
                 </form>
-                {
-                    
-                    loading && <p className="mt-5 text-center">Loading Orders...</p>
-                }
-                {
-                    error && <p className="text-center mt-5">Error: {error}</p>
-                }
                 <div className="space-y-4">
                     {filteredOrders.length === 0 ? (
                         <p className="mt-5 text-center text-2xl text-white">
